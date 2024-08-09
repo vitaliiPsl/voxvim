@@ -1,18 +1,29 @@
 import React, { useState } from 'react'
 import axios from 'axios'
-
+import { MdVideoCameraBack } from 'react-icons/md'
 import { TranscriptionForm } from './components/TranscriptionForm'
 import { TranscriptionDisplay } from './components/TranscriptionDisplay'
 import { VideoPlayer } from './components/VideoPlayer'
 
-import { MdVideoCameraBack } from 'react-icons/md';
+interface Segment {
+	id: number
+	start: number
+	end: number
+	text: string
+}
+
+interface TranscriptionResult {
+	text: string
+	segments: Segment[]
+}
 
 function App() {
 	const [file, setFile] = useState<File | null>(null)
 	const [videoUrl, setVideoUrl] = useState<string>('')
 	const [loading, setLoading] = useState<boolean>(false)
 	const [error, setError] = useState<string>('')
-	const [transcription, setTranscription] = useState<string>('')
+	const [transcription, setTranscription] =
+		useState<TranscriptionResult | null>(null)
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files[0]) {
@@ -25,6 +36,7 @@ function App() {
 	const handleRemoveFile = () => {
 		setFile(null)
 		setVideoUrl('')
+		setTranscription(null)
 	}
 
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -36,20 +48,20 @@ function App() {
 
 		setLoading(true)
 		setError('')
-		setTranscription('')
+		setTranscription(null)
 
 		const formData = new FormData()
 		formData.append('file', file)
 
 		try {
-			const response = await axios.post(
+			const response = await axios.post<TranscriptionResult>(
 				'http://localhost:5000/transcribe',
 				formData,
 				{
 					headers: { 'Content-Type': 'multipart/form-data' },
 				}
 			)
-			setTranscription(response.data.text)
+			setTranscription(response.data)
 		} catch (error) {
 			setError('An error occurred while transcribing the video')
 			console.error('Error:', error)
@@ -84,10 +96,19 @@ function App() {
 							<p className='mt-2 text-sm text-red-600'>{error}</p>
 						)}
 					</div>
-					<TranscriptionDisplay transcription={transcription} />
+					{transcription && (
+						<TranscriptionDisplay
+							transcription={transcription.text}
+						/>
+					)}
 				</div>
 			</div>
-			<VideoPlayer videoUrl={videoUrl} />
+			{videoUrl && transcription && (
+				<VideoPlayer
+					videoUrl={videoUrl}
+					subtitles={transcription.segments}
+				/>
+			)}
 		</div>
 	)
 }

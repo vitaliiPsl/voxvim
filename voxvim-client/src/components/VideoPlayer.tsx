@@ -1,15 +1,26 @@
 import React, { useRef, useState, useEffect } from 'react'
-
 import { FaPlay, FaPause } from 'react-icons/fa'
+
+interface Segment {
+	id: number
+	start: number
+	end: number
+	text: string
+}
 
 interface VideoPlayerProps {
 	videoUrl: string
+	subtitles: Segment[]
 }
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({
+	videoUrl,
+	subtitles,
+}) => {
 	const [isPlaying, setIsPlaying] = useState<boolean>(false)
 	const [currentTime, setCurrentTime] = useState<number>(0)
 	const [duration, setDuration] = useState<number>(0)
+	const [currentSubtitle, setCurrentSubtitle] = useState<string>('')
 	const videoRef = useRef<HTMLVideoElement>(null)
 
 	useEffect(() => {
@@ -31,8 +42,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl }) => {
 
 	const handleTimeUpdate = () => {
 		if (videoRef.current) {
-			setCurrentTime(videoRef.current.currentTime)
+			const time = videoRef.current.currentTime
+			setCurrentTime(time)
+			updateSubtitle(time)
 		}
+	}
+
+	const updateSubtitle = (time: number) => {
+		const currentSegment = subtitles.find(
+			(segment) => time >= segment.start && time <= segment.end
+		)
+		setCurrentSubtitle(currentSegment ? currentSegment.text : '')
 	}
 
 	const handleLoadedMetadata = () => {
@@ -66,12 +86,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl }) => {
 		return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
 	}
 
-	if (!videoUrl) return null
-
 	return (
 		<div className='fixed bottom-0 left-0 right-0 bg-white shadow-lg'>
 			<div className='max-w-2xl mx-auto px-4 py-2'>
-				<div className='flex items-center'>
+				<div className='p-2 text-center font-medium text-lg'>
+					{currentSubtitle}
+				</div>
+				<div className='flex items-center mb-2'>
 					<button
 						onClick={togglePlay}
 						className='p-2 rounded-full bg-gray-900 text-white mr-4'
