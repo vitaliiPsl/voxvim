@@ -4,30 +4,26 @@ import { MdClose, MdVideoLibrary } from 'react-icons/md'
 interface UploadFormProps {
 	file: File | null
 	videoUrl: string
-	loading: boolean
 	onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void
 	onRemoveFile: () => void
-	onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
 }
 
 export const UploadForm: React.FC<UploadFormProps> = ({
 	file,
 	videoUrl,
-	loading,
 	onFileChange,
 	onRemoveFile,
-	onSubmit,
 }) => {
 	return (
-		<form onSubmit={onSubmit} className='space-y-6'>
+		<div className='space-y-6'>
 			{!videoUrl ? (
-				<div className='border-2 border-dashed border-gray-200 rounded-lg p-12 transition-all hover:border-gray-400'>
+				<div className='border-2 border-dashed border-gray-300 rounded-lg p-12 transition-all hover:border-gray-400'>
 					<label className='flex flex-col items-center cursor-pointer'>
-						<span className='text-3xl font-semibold text-gray-700'>
+						<span className='text-2xl font-semibold text-gray-700 mb-2'>
 							Drop a file to transcribe it
 						</span>
-						<span className='text-lg text-gray-500'>or</span>
-						<span className='mt-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors'>
+						<span className='text-sm text-gray-500 mb-4'>or</span>
+						<span className='px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm'>
 							Choose a file
 						</span>
 						<input
@@ -67,16 +63,9 @@ export const UploadForm: React.FC<UploadFormProps> = ({
 							<MdClose className='w-6 h-6' />
 						</button>
 					</div>
-					<button
-						type='submit'
-						disabled={loading || !file}
-						className='w-full py-3 px-4 border border-transparent rounded-lg text-white bg-gray-900 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-					>
-						{loading ? 'Transcribing...' : 'Transcribe'}
-					</button>
 				</div>
 			)}
-		</form>
+		</div>
 	)
 }
 

@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import axios from 'axios'
 
 import UploadForm from '../components/preview/UploadForm'
-import TranscriptionResult from '../components/preview/TranscriptionResult'
+import TranscriptionPanel from '../components/preview/TranscriptionPanel'
 
 interface TranscriptionResult {
 	text: string
@@ -20,12 +20,9 @@ interface Segment {
 export const PreviewScreen: React.FC = () => {
 	const [file, setFile] = useState<File | null>(null)
 	const [videoUrl, setVideoUrl] = useState<string>('')
-
 	const [loading, setLoading] = useState<boolean>(false)
 	const [error, setError] = useState<string>('')
-
-	const [transcription, setTranscription] =
-		useState<TranscriptionResult | null>(null)
+	const [result, setResult] = useState<TranscriptionResult | null>(null)
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files[0]) {
@@ -36,14 +33,12 @@ export const PreviewScreen: React.FC = () => {
 	}
 
 	const handleRemoveFile = () => {
-		setError('')
 		setFile(null)
 		setVideoUrl('')
-		setTranscription(null)
+		setResult(null)
 	}
 
-	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-		event.preventDefault()
+	const processFile = async () => {
 		if (!file) {
 			setError('Please select a file')
 			return
@@ -51,7 +46,7 @@ export const PreviewScreen: React.FC = () => {
 
 		setLoading(true)
 		setError('')
-		setTranscription(null)
+		setResult(null)
 
 		const formData = new FormData()
 		formData.append('file', file)
@@ -64,9 +59,9 @@ export const PreviewScreen: React.FC = () => {
 					headers: { 'Content-Type': 'multipart/form-data' },
 				}
 			)
-			setTranscription(response.data)
+			setResult(response.data)
 		} catch (error) {
-			setError('An error occurred while transcribing the video')
+			setError(`An error occurred while processing the video`)
 			console.error('Error:', error)
 		} finally {
 			setLoading(false)
@@ -100,7 +95,7 @@ export const PreviewScreen: React.FC = () => {
 				<div className='flex-1 max-w-3xl w-full flex flex-col items-stretch gap-8'>
 					<div className='mb-6 flex flex-col items-center'>
 						<h1 className='text-5xl font-bold text-gray-900 mb-4'>
-							Video Transcription
+							Video Transcription & Subtitles
 						</h1>
 						<p className='text-xl text-gray-600'>
 							Convert your video to text in seconds
@@ -110,19 +105,19 @@ export const PreviewScreen: React.FC = () => {
 					<UploadForm
 						file={file}
 						videoUrl={videoUrl}
-						loading={loading}
 						onFileChange={handleFileChange}
 						onRemoveFile={handleRemoveFile}
-						onSubmit={handleSubmit}
 					/>
 
 					{error && (
 						<p className='mt-4 text-sm text-red-600'>{error}</p>
 					)}
 
-					{transcription && (
-						<TranscriptionResult
-							transcription={transcription.text}
+					{file && (
+						<TranscriptionPanel
+							loading={loading}
+							segments={result?.segments || []}
+							onTranscribe={processFile}
 						/>
 					)}
 				</div>
