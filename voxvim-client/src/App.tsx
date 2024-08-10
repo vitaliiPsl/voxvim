@@ -1,114 +1,15 @@
-import React, { useState } from 'react'
-import axios from 'axios'
-import { MdVideoCameraBack } from 'react-icons/md'
-import { TranscriptionForm } from './components/TranscriptionForm'
-import { TranscriptionDisplay } from './components/TranscriptionDisplay'
-import { VideoPlayer } from './components/VideoPlayer'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 
-interface Segment {
-	id: number
-	start: number
-	end: number
-	text: string
-}
-
-interface TranscriptionResult {
-	text: string
-	segments: Segment[]
-}
+import { PreviewScreen } from './screens/PreviewScreen'
 
 function App() {
-	const [file, setFile] = useState<File | null>(null)
-	const [videoUrl, setVideoUrl] = useState<string>('')
-	const [loading, setLoading] = useState<boolean>(false)
-	const [error, setError] = useState<string>('')
-	const [transcription, setTranscription] =
-		useState<TranscriptionResult | null>(null)
-
-	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (event.target.files && event.target.files[0]) {
-			const file = event.target.files[0]
-			setFile(file)
-			setVideoUrl(URL.createObjectURL(file))
-		}
-	}
-
-	const handleRemoveFile = () => {
-		setFile(null)
-		setVideoUrl('')
-		setTranscription(null)
-	}
-
-	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-		event.preventDefault()
-		if (!file) {
-			setError('Please select a file')
-			return
-		}
-
-		setLoading(true)
-		setError('')
-		setTranscription(null)
-
-		const formData = new FormData()
-		formData.append('file', file)
-
-		try {
-			const response = await axios.post<TranscriptionResult>(
-				'http://localhost:5000/transcribe',
-				formData,
-				{
-					headers: { 'Content-Type': 'multipart/form-data' },
-				}
-			)
-			setTranscription(response.data)
-		} catch (error) {
-			setError('An error occurred while transcribing the video')
-			console.error('Error:', error)
-		} finally {
-			setLoading(false)
-		}
-	}
-
 	return (
-		<div className='min-h-screen bg-gray-100 flex flex-col py-12 px-4 sm:px-6 lg:px-8'>
-			<div className='sm:mx-auto sm:w-full sm:max-w-2xl mb-20'>
-				<div className='text-center mb-8'>
-					<h1 className='text-4xl font-extrabold text-gray-900 flex items-center justify-center'>
-						<MdVideoCameraBack className='h-10 w-10 text-gray-900 mr-3' />
-						Video Transcription
-					</h1>
-					<p className='mt-2 text-sm text-gray-600'>
-						Convert your video to text in seconds
-					</p>
-				</div>
-				<div className='bg-white shadow-md rounded-lg overflow-hidden'>
-					<div className='px-4 py-5 sm:p-6'>
-						<TranscriptionForm
-							file={file}
-							videoUrl={videoUrl}
-							loading={loading}
-							onFileChange={handleFileChange}
-							onRemoveFile={handleRemoveFile}
-							onSubmit={handleSubmit}
-						/>
-						{error && (
-							<p className='mt-2 text-sm text-red-600'>{error}</p>
-						)}
-					</div>
-					{transcription && (
-						<TranscriptionDisplay
-							transcription={transcription.text}
-						/>
-					)}
-				</div>
-			</div>
-			{videoUrl && transcription && (
-				<VideoPlayer
-					videoUrl={videoUrl}
-					subtitles={transcription.segments}
-				/>
-			)}
+		<div className='min-h-screen bg-white flex flex-col items-stretch'>
+			<Router>
+				<Routes>
+					<Route path='/' element={<PreviewScreen />} />
+				</Routes>
+			</Router>
 		</div>
 	)
 }
